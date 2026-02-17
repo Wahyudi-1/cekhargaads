@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cek Harga & Data Barang - Toko ADS</title>
+    <link rel="stylesheet" href="style_ads.css">
+    <link rel="icon" type="image/png" href="Logo.png">
+</head>
+<body>
+
+    <!-- === 1. HALAMAN LOGIN (TETAP ADA) === -->
+    <div id="login-container">
+        <form id="form-login">
+            <div style="text-align: center; margin-bottom: 20px;">
+                <!-- Placeholder Logo jika ada -->
+                <h2 style="color: #2c3e50;">Toko ADS</h2>
+                <p>Login Manager & Cek Harga</p>
+            </div>
+            
+            <div class="form-group password-wrapper">
+                <label for="username">Username</label>
+                <input type="text" id="username" name="username" required>
+            </div>
+            <div class="form-group password-wrapper">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" required>
+                <button type="button" class="toggle-password" aria-label="Tampilkan password">👁️</button>
+            </div>
+            <button type="submit">Masuk Sistem</button>
+            <div id="login-status"></div>
+        </form>
+    </div>
+
+    <!-- === 2. HALAMAN UTAMA (APP) === -->
+    <div id="app-container" class="hidden">
+        <header>
+            <div class="header-left">
+                <h1>Cek Harga Barang</h1>
+                <span id="info-nama-user" class="badge-user">User</span>
+            </div>
+            <button id="btn-logout">Keluar</button>
+        </header>
+
+        <main>
+            <!-- BAGIAN SCAN & CARI -->
+            <section id="section-cari">
+                <div class="search-box">
+                    <input type="text" id="input-cari" placeholder="Scan Barcode atau Ketik Nama Barang..." autocomplete="off">
+                    <button id="btn-scan" class="btn-icon">📷 Scan</button>
+                </div>
+                <!-- Hasil Rekomendasi (Dropdown) -->
+                <div id="hasil-pencarian" class="rekomendasi-container hidden"></div>
+            </section>
+
+            <!-- BAGIAN DISPLAY HARGA (Tampil jika barang ditemukan) -->
+            <section id="section-display" class="hidden">
+                <div class="price-card">
+                    <div class="card-header">
+                        <span id="disp-kode">KODE: -</span>
+                        <span id="disp-kategori" class="badge-kategori">-</span>
+                    </div>
+                    <h2 id="disp-nama">Nama Barang</h2>
+                    <div class="price-large" id="disp-harga">Rp 0</div>
+                    <div class="stock-info">
+                        Stok: <strong id="disp-stok">0</strong> | 
+                        Harga Karton: <span id="disp-harga-karton">-</span>
+                    </div>
+                    <div class="action-buttons">
+                        <button id="btn-edit-item">✏️ Ubah Data / Harga</button>
+                        <button id="btn-tutup-display">Tutup</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- BAGIAN FORM INPUT (Untuk Tambah Baru / Edit) -->
+            <section id="section-form">
+                <div class="section-title">
+                    <h3>Form Data Barang</h3>
+                    <button id="btn-reset-form" class="btn-small">Bersihkan Form (Input Baru)</button>
+                </div>
+                
+                <form id="form-barang">
+                    <input type="hidden" id="ID_Barang" name="ID_Barang">
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Kode Barang (Barcode)</label>
+                            <input type="text" id="Kode_Barang" name="Kode_Barang" required placeholder="Scan atau ketik kode unik">
+                        </div>
+                        <div class="form-group">
+                            <label>Nama Barang</label>
+                            <input type="text" id="Nama_Barang" name="Nama_Barang" required placeholder="Nama produk lengkap">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Kategori</label>
+                            <input type="text" id="Kategori_Barang" name="Kategori_Barang" placeholder="Contoh: Makanan, Sabun">
+                        </div>
+                        <div class="form-group">
+                            <label>Stok (Pcs/Kg)</label>
+                            <input type="number" id="Stok_Pcs" name="Stok_Pcs" value="0" required>
+                        </div>
+                    </div>
+
+                    <div class="form-row bg-highlight">
+                        <div class="form-group">
+                            <label>Harga Jual Satuan (Pcs)</label>
+                            <input type="number" id="Harga_Pcs" name="Harga_Pcs" value="0" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Harga Karton/Sak (Opsional)</label>
+                            <input type="number" id="Harga_Karton" name="Harga_Karton" value="0">
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" id="btn-simpan">Simpan Data</button>
+                        <div id="loading-simpan" class="hidden">Menyimpan...</div>
+                    </div>
+                </form>
+            </section>
+        </main>
+
+        <!-- Overlay Scanner -->
+        <div id="scanner-container" class="hidden">
+            <div id="scanner-viewfinder"></div>
+            <button id="btn-close-scanner">Tutup Kamera</button>
+        </div>
+        
+        <!-- Notifikasi -->
+        <div id="notifikasi" class="hidden"></div>
+    </div>
+
+    <!-- Script Library -->
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+    <script src="app.js" type="module"></script>
+</body>
+</html>
