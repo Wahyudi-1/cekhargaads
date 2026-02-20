@@ -55,7 +55,15 @@
             <!-- ========================================== -->
             <div id="view-cek" class="tab-content active">
                 <section id="section-cari">
-                    <div class="search-box">
+                    
+                    <!-- Wadah untuk scanner inline yang menyatu dengan halaman (Disembunyikan saat tidak dipakai) -->
+                    <div id="inline-scanner-container" class="hidden" style="margin-bottom: 15px; text-align: center; background: #fff; padding: 15px; border-radius: 8px; border: 1px solid #ddd; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
+                        <p style="margin-bottom: 10px; font-weight: bold; color: var(--primary);">Arahkan Barcode ke Kamera</p>
+                        <div id="inline-scanner-viewfinder" style="width: 100%; max-width: 400px; margin: 0 auto; border: 2px solid var(--accent); border-radius: 8px; overflow: hidden; background: #000;"></div>
+                        <button id="btn-tutup-inline-scanner" style="margin-top: 15px; padding: 10px 20px; background: var(--danger); color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; width: 100%; max-width: 400px;">Batal / Tutup Kamera</button>
+                    </div>
+
+                    <div class="search-box" id="search-box-container">
                         <input type="text" id="input-cari" placeholder="Scan Barcode atau Ketik Nama Barang..." autocomplete="off">
                         <button id="btn-scan" class="btn-icon">📷 Scan</button>
                     </div>
