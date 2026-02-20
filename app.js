@@ -190,12 +190,10 @@ function renderRekomendasi(items) {
 function tampilkanDisplayHarga(item) {
     els.sectionDisplay.classList.remove('hidden');
     
-    document.getElementById('disp-kode').textContent = `KODE: ${item.Kode_Barang}`;
-    document.getElementById('disp-kategori').textContent = item.Kategori_Barang || 'Umum';
     document.getElementById('disp-nama').textContent = item.Nama_Barang;
-    document.getElementById('disp-harga').textContent = formatRupiah(item.Harga_Pcs);
-    document.getElementById('disp-stok').textContent = item.Stok_Pcs;
-    document.getElementById('disp-harga-karton').textContent = item.Harga_Karton ? formatRupiah(item.Harga_Karton) : '-';
+    document.getElementById('disp-harga-satuan').textContent = formatRupiah(item.Harga_Pcs || 0);
+    document.getElementById('disp-harga-lusin').textContent = formatRupiah(item.Harga_Lusin || 0);
+    document.getElementById('disp-harga-karton').textContent = formatRupiah(item.Harga_Karton || 0);
 
     // Event saat tombol "Ubah Data" diklik
     document.getElementById('btn-edit-item').onclick = () => {
@@ -236,14 +234,38 @@ document.getElementById('btn-batal-form').addEventListener('click', tutupForm);
 
 // Mengisi Form
 function isiForm(item) {
-    els.formBarang.ID_Barang.value = item.ID_Barang;
-    els.formBarang.Kode_Barang.value = item.Kode_Barang;
-    els.formBarang.Nama_Barang.value = item.Nama_Barang;
+    els.formBarang.ID_Barang.value = item.ID_Barang || '';
+    els.formBarang.Kode_Barang.value = item.Kode_Barang || '';
+    els.formBarang.Nama_Barang.value = item.Nama_Barang || '';
     els.formBarang.Kategori_Barang.value = item.Kategori_Barang || '';
-    els.formBarang.Stok_Pcs.value = item.Stok_Pcs;
-    els.formBarang.Harga_Pcs.value = item.Harga_Pcs;
+    els.formBarang.Stok_Pcs.value = item.Stok_Pcs || 0;
+    els.formBarang.Harga_Pcs.value = item.Harga_Pcs || 0;
+    els.formBarang.Harga_Lusin.value = item.Harga_Lusin || 0;
     els.formBarang.Harga_Karton.value = item.Harga_Karton || 0;
 }
+
+// Fitur Otomatis Cek Saat Kode/Barcode diisi di Form
+els.kodeBarangInput.addEventListener('input', (e) => {
+    const query = e.target.value.toLowerCase().trim();
+    if (query.length < 1) return;
+
+    // Cari barang berdasar kode
+    const existingItem = AppState.barang.find(b => String(b.Kode_Barang).toLowerCase() === query);
+    
+    if (existingItem) {
+        tampilkanNotifikasi("Data ditemukan. Form otomatis terisi.", "info");
+        isiForm(existingItem);
+        document.getElementById('form-title').textContent = "Ubah Data Barang";
+    } else {
+        // Jika tidak ketemu, kosongkan sisa data untuk mode Tambah Baru
+        els.formBarang.ID_Barang.value = '';
+        els.formBarang.Nama_Barang.value = '';
+        els.formBarang.Harga_Pcs.value = 0;
+        els.formBarang.Harga_Lusin.value = 0;
+        els.formBarang.Harga_Karton.value = 0;
+        document.getElementById('form-title').textContent = "Tambah Data Barang Baru";
+    }
+});
 
 els.formBarang.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -287,23 +309,21 @@ els.formBarang.addEventListener('submit', async (e) => {
 // ====================================================================
 
 let activeScannerTarget = null;
-let autoSearchOnScan = false;
 
 // Tombol Scan di tab Cek Harga
 document.getElementById('btn-scan').addEventListener('click', () => {
-    mulaiScanner(els.inputCari, true);
+    mulaiScanner(els.inputCari);
 });
 
 // Tombol Scan di form Kelola Data Barang
 if (els.btnScanForm) {
     els.btnScanForm.addEventListener('click', () => {
-        mulaiScanner(els.kodeBarangInput, false);
+        mulaiScanner(els.kodeBarangInput);
     });
 }
 
-function mulaiScanner(targetInput, autoSearch) {
+function mulaiScanner(targetInput) {
     activeScannerTarget = targetInput;
-    autoSearchOnScan = autoSearch;
     
     els.scannerContainer.classList.remove('hidden');
     if (!AppState.scanner) {
@@ -315,11 +335,9 @@ function mulaiScanner(targetInput, autoSearch) {
         stopScanner();
         activeScannerTarget.value = decodedText;
         
-        // Jika scan dari form pencarian, jalankan otomatis pencarian.
-        // Jika scan dari form input, cukup isikan nilainya ke input box.
-        if (autoSearchOnScan) {
-            activeScannerTarget.dispatchEvent(new Event('input'));
-        }
+        // Selalu panggil Event 'input' otomatis agar autofill/pencarian langsung berjalan
+        activeScannerTarget.dispatchEvent(new Event('input'));
+        
         tampilkanNotifikasi("Barcode terdeteksi!", "sukses");
     }, (err) => {
         // Error scan ignore
