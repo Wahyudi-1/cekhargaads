@@ -108,7 +108,10 @@
                         <div class="form-row">
                             <div class="form-group">
                                 <label>Kode Barang (Barcode)</label>
-                                <input type="text" id="Kode_Barang" name="Kode_Barang" required placeholder="Scan atau ketik kode unik">
+                                <div style="display: flex; gap: 10px;">
+                                    <input type="text" id="Kode_Barang" name="Kode_Barang" required placeholder="Scan atau ketik kode unik" style="flex: 1;">
+                                    <button type="button" id="btn-scan-form" style="background: var(--primary, #2c3e50); color: white; border: none; padding: 0 15px; border-radius: 5px; cursor: pointer; font-weight: bold;">📷 Scan</button>
+                                </div>
                             </div>
                             <div class="form-group">
                                 <label>Nama Barang</label>
