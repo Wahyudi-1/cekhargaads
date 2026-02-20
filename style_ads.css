@@ -147,3 +147,59 @@ main { padding: 20px; }
     .nav-tabs { padding: 0 10px; }
     .tab-btn { flex: 1; text-align: center; font-size: 0.9rem; padding: 10px; }
 }
+
+
+
+/* ========================================= */
+/* === GAYA KHUSUS INLINE SCANNER (HP)   === */
+/* ========================================= */
+.scanner-box-inline {
+    margin-bottom: 15px; 
+    text-align: center; 
+    background: #fff; 
+    padding: 15px; 
+    border-radius: 8px; 
+    border: 1px solid #ddd; 
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+.scanner-box-inline p {
+    margin-bottom: 10px; 
+    font-weight: bold; 
+    color: var(--primary);
+}
+
+/* Wadah luar kamera */
+#inline-scanner-viewfinder {
+    width: 100% !important;
+    max-width: 300px; /* Lebar aman untuk semua jenis HP */
+    margin: 0 auto; 
+    border: 2px solid var(--accent); 
+    border-radius: 8px; 
+    overflow: hidden; 
+    background: #000;
+    position: relative;
+}
+
+/* KUNCI PERBAIKAN: Memaksa video bawaan library agar tidak meluap */
+#inline-scanner-viewfinder video,
+#inline-scanner-viewfinder canvas {
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+    object-fit: cover; /* Mencegah video gepeng */
+}
+
+/* Tombol bawah kamera */
+.btn-danger-full {
+    margin-top: 15px; 
+    padding: 12px 20px; 
+    background: var(--danger); 
+    color: white; 
+    border: none; 
+    border-radius: 8px; 
+    cursor: pointer; 
+    font-weight: bold; 
+    width: 100%; 
+    max-width: 300px;
+}
