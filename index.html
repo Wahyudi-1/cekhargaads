@@ -37,6 +37,8 @@
             <div class="header-left">
                 <h1>Sistem Cek Harga</h1>
                 <span id="info-nama-user" class="badge-user">User</span>
+                <!-- Indikator Offline -->
+                <span id="indikator-koneksi" style="font-size: 0.8rem; padding: 2px 8px; border-radius: 10px; margin-left: 10px; background-color: #e74c3c; color: white; display: none;">Mode Offline</span>
             </div>
             <button id="btn-logout">Keluar</button>
         </header>
@@ -173,6 +175,18 @@
 
     <!-- Script Library -->
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+    
+    <!-- Pendaftaran Service Worker untuk Mode Offline -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(registration => console.log('ServiceWorker sukses didaftarkan'))
+                    .catch(err => console.log('ServiceWorker gagal: ', err));
+            });
+        }
+    </script>
+    
     <script src="app.js" type="module"></script>
 </body>
 </html>
