@@ -34,8 +34,71 @@ const els = {
     tabCek: document.getElementById('tab-cek'),
     tabInput: document.getElementById('tab-input'),
     viewCek: document.getElementById('view-cek'),
-    viewInput: document.getElementById('view-input')
+    viewInput: document.getElementById('view-input'),
+    indikatorKoneksi: document.getElementById('indikator-koneksi')
 };
+
+// ====================================================================
+// FITUR OFFLINE & SINKRONISASI
+// ====================================================================
+
+// Pantau perubahan koneksi
+window.addEventListener('online', handleOnline);
+window.addEventListener('offline', handleOffline);
+
+function handleOffline() {
+    els.indikatorKoneksi.style.display = 'inline-block';
+    els.indikatorKoneksi.textContent = "Mode Offline";
+    els.indikatorKoneksi.style.backgroundColor = "#e74c3c";
+    tampilkanNotifikasi("Koneksi terputus. Beralih ke Mode Offline.", "error");
+}
+
+async function handleOnline() {
+    els.indikatorKoneksi.style.display = 'none';
+    tampilkanNotifikasi("Kembali Online. Memeriksa antrean sinkronisasi...", "info");
+    await sinkronisasiDataOffline();
+    await muatDataBarang(); // Refresh data dari server
+}
+
+// Cek status saat pertama kali load
+if (!navigator.onLine) {
+    handleOffline();
+}
+
+async function sinkronisasiDataOffline() {
+    let antrean = JSON.parse(localStorage.getItem('antrean_offline_ads') || '[]');
+    if (antrean.length === 0) return;
+
+    tampilkanNotifikasi(`Menyinkronkan ${antrean.length} data ke server...`, "info");
+    
+    let berhasil = 0;
+    let sisaAntrean = [];
+
+    // Proses satu per satu
+    for (const item of antrean) {
+        try {
+            // Ubah objek JSON kembali menjadi FormData
+            const formData = new FormData();
+            for (const key in item) {
+                formData.append(key, item[key]);
+            }
+            
+            const res = await fetch(SCRIPT_URL, { method: 'POST', body: formData });
+            const result = await res.json();
+            if (result.status === 'sukses') {
+                berhasil++;
+            } else {
+                sisaAntrean.push(item); // Gagal server, biarkan di antrean
+            }
+        } catch (e) {
+            sisaAntrean.push(item); // Gagal jaringan lagi, biarkan di antrean
+        }
+    }
+
+    localStorage.setItem('antrean_offline_ads', JSON.stringify(sisaAntrean));
+    if (berhasil > 0) tampilkanNotifikasi(`${berhasil} data berhasil disinkronkan!`, "sukses");
+}
+
 
 // ====================================================================
 // 1. SISTEM LOGIN & TAB NAVIGASI
@@ -126,16 +189,32 @@ async function tampilkanApp() {
 }
 
 async function muatDataBarang() {
-    tampilkanNotifikasi("Memperbarui Data Barang...", "info");
-    try {
-        const res = await fetch(`${SCRIPT_URL}?action=getBarang`);
-        const result = await res.json();
-        if (result.status === 'sukses') {
-            AppState.barang = result.data;
-            tampilkanNotifikasi("Data Siap!", "sukses");
+    if (navigator.onLine) {
+        tampilkanNotifikasi("Memperbarui Data Barang dari Server...", "info");
+        try {
+            const res = await fetch(`${SCRIPT_URL}?action=getBarang`);
+            const result = await res.json();
+            if (result.status === 'sukses') {
+                AppState.barang = result.data;
+                // Simpan salinan ke penyimpanan lokal untuk digunakan saat offline
+                localStorage.setItem('data_barang_ads', JSON.stringify(result.data));
+                tampilkanNotifikasi("Data Siap!", "sukses");
+            }
+        } catch (err) {
+            muatDataLokal("Gagal terhubung ke server. Menggunakan data lokal.");
         }
-    } catch (err) {
-        tampilkanNotifikasi("Gagal memuat data barang", "error");
+    } else {
+        muatDataLokal("Anda sedang offline. Menggunakan data tersimpan.");
+    }
+}
+
+function muatDataLokal(pesan) {
+    const dataLokal = localStorage.getItem('data_barang_ads');
+    if (dataLokal) {
+        AppState.barang = JSON.parse(dataLokal);
+        tampilkanNotifikasi(pesan, "info");
+    } else {
+        tampilkanNotifikasi("Tidak ada data tersimpan. Harus online minimal sekali.", "error");
     }
 }
 
@@ -267,6 +346,7 @@ els.kodeBarangInput.addEventListener('input', (e) => {
     }
 });
 
+
 els.formBarang.addEventListener('submit', async (e) => {
     e.preventDefault();
     const btn = document.getElementById('btn-simpan');
@@ -277,32 +357,65 @@ els.formBarang.addEventListener('submit', async (e) => {
 
     const formData = new FormData(els.formBarang);
     formData.append('action', action);
+    
+    // Ubah form data menjadi Object agar bisa disimpan ke LocalStorage jika offline
+    const formDataObj = Object.fromEntries(formData.entries());
 
     btn.disabled = true;
     btn.classList.add('hidden');
     loading.classList.remove('hidden');
 
-    try {
-        const res = await fetch(SCRIPT_URL, { method: 'POST', body: formData });
-        const result = await res.json();
-        
-        if (result.status === 'sukses') {
-            tampilkanNotifikasi(result.message, 'sukses');
-            tutupForm(); // Sembunyikan form kembali ke keadaan semula
-            els.sectionDisplay.classList.add('hidden'); // Tutup juga display harga lama
-            els.tabCek.click(); // Otomatis kembali ke layar cek harga
-            await muatDataBarang(); 
-        } else {
-            tampilkanNotifikasi("Gagal: " + result.message, 'error');
+    if (navigator.onLine) {
+        // --- MODE ONLINE: Langsung kirim ke server ---
+        try {
+            const res = await fetch(SCRIPT_URL, { method: 'POST', body: formData });
+            const result = await res.json();
+            
+            if (result.status === 'sukses') {
+                tampilkanNotifikasi(result.message, 'sukses');
+                tutupForm();
+                els.sectionDisplay.classList.add('hidden');
+                els.tabCek.click();
+                await muatDataBarang(); 
+            } else {
+                tampilkanNotifikasi("Gagal: " + result.message, 'error');
+            }
+        } catch (err) {
+            simpanKeAntreanOffline(formDataObj); // Fallback ke offline jika tiba-tiba RTO
         }
-    } catch (err) {
-        tampilkanNotifikasi("Gagal menghubungi server", "error");
-    } finally {
-        btn.disabled = false;
-        btn.classList.remove('hidden');
-        loading.classList.add('hidden');
+    } else {
+        // --- MODE OFFLINE: Simpan ke antrean lokal ---
+        simpanKeAntreanOffline(formDataObj);
     }
+
+    btn.disabled = false;
+    btn.classList.remove('hidden');
+    loading.classList.add('hidden');
 });
+
+function simpanKeAntreanOffline(dataObj) {
+    // Tambah ke queue
+    let antrean = JSON.parse(localStorage.getItem('antrean_offline_ads') || '[]');
+    antrean.push(dataObj);
+    localStorage.setItem('antrean_offline_ads', JSON.stringify(antrean));
+    
+    // Update data lokal (UI) sementara agar perubahan langsung terlihat di layar
+    if (dataObj.action === 'ubahBarang') {
+        const index = AppState.barang.findIndex(b => b.ID_Barang === dataObj.ID_Barang);
+        if (index !== -1) AppState.barang[index] = { ...AppState.barang[index], ...dataObj };
+    } else {
+        dataObj.ID_Barang = "TEMP_" + Date.now(); // ID Sementara
+        AppState.barang.push(dataObj);
+    }
+    
+    // Simpan perubahan sementara ke Local Storage
+    localStorage.setItem('data_barang_ads', JSON.stringify(AppState.barang));
+
+    tampilkanNotifikasi("Disimpan ke perangkat (Offline). Akan disinkronkan saat online.", "info");
+    tutupForm();
+    els.sectionDisplay.classList.add('hidden');
+    els.tabCek.click();
+}
 
 // ====================================================================
 // 4. FITUR SCANNER & UTILITIES
