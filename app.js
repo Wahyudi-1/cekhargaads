@@ -1,5 +1,5 @@
 // ====================================================================
-// APP.JS - VERSI SEDERHANA (LOGIN + CEK HARGA + UPDATE DATA)
+// APP.JS - VERSI 2 TAB (CEK HARGA & KELOLA BARANG DENGAN FORM TERSEMBUNYI)
 // ====================================================================
 
 // --- KONFIGURASI URL SCRIPT GOOGLE APPS ---
@@ -7,9 +7,9 @@ const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzhue9eY4KEOD9SCm1Wd
 
 // --- STATE APLIKASI ---
 const AppState = {
-    barang: [],     // Menyimpan data barang lokal agar pencarian cepat
-    user: null,     // Data user yang login
-    scanner: null   // Objek scanner
+    barang: [],     
+    user: null,     
+    scanner: null   
 };
 
 // --- DOM ELEMENTS ---
@@ -21,12 +21,20 @@ const els = {
     hasilPencarian: document.getElementById('hasil-pencarian'),
     sectionDisplay: document.getElementById('section-display'),
     formBarang: document.getElementById('form-barang'),
+    sectionForm: document.getElementById('section-form'),
+    actionTambahBaru: document.getElementById('action-tambah-baru'),
     notifikasi: document.getElementById('notifikasi'),
-    scannerContainer: document.getElementById('scanner-container')
+    scannerContainer: document.getElementById('scanner-container'),
+    
+    // Tab Elements
+    tabCek: document.getElementById('tab-cek'),
+    tabInput: document.getElementById('tab-input'),
+    viewCek: document.getElementById('view-cek'),
+    viewInput: document.getElementById('view-input')
 };
 
 // ====================================================================
-// 1. SISTEM LOGIN & SESI
+// 1. SISTEM LOGIN & TAB NAVIGASI
 // ====================================================================
 
 document.addEventListener('DOMContentLoaded', cekStatusLogin);
@@ -48,7 +56,6 @@ els.formLogin.addEventListener('submit', async (e) => {
     const status = document.getElementById('login-status');
     const formData = new FormData(els.formLogin);
     
-    // Tambahkan action manual
     formData.append('action', 'loginUser');
 
     btn.disabled = true;
@@ -86,8 +93,23 @@ document.querySelector('.toggle-password').addEventListener('click', (e) => {
     input.type = input.type === 'password' ? 'text' : 'password';
 });
 
+// -- LOGIKA PINDAH TAB --
+els.tabCek.addEventListener('click', () => {
+    els.tabCek.classList.add('active');
+    els.tabInput.classList.remove('active');
+    els.viewCek.classList.add('active');
+    els.viewInput.classList.remove('active');
+});
+
+els.tabInput.addEventListener('click', () => {
+    els.tabInput.classList.add('active');
+    els.tabCek.classList.remove('active');
+    els.viewInput.classList.add('active');
+    els.viewCek.classList.remove('active');
+});
+
 // ====================================================================
-// 2. LOGIKA UTAMA APLIKASI
+// 2. LOGIKA DATA & PENCARIAN
 // ====================================================================
 
 async function tampilkanApp() {
@@ -95,7 +117,6 @@ async function tampilkanApp() {
     els.appContainer.classList.remove('hidden');
     document.getElementById('info-nama-user').textContent = AppState.user.Nama_Lengkap;
     
-    // Muat data barang sekali di awal
     await muatDataBarang();
     els.inputCari.focus();
 }
@@ -136,7 +157,7 @@ els.inputCari.addEventListener('input', (e) => {
     const matches = AppState.barang.filter(b => 
         String(b.Nama_Barang).toLowerCase().includes(query) || 
         String(b.Kode_Barang).toLowerCase().includes(query)
-    ).slice(0, 5); // Ambil 5 teratas
+    ).slice(0, 5); 
 
     renderRekomendasi(matches);
 });
@@ -165,7 +186,6 @@ function renderRekomendasi(items) {
 function tampilkanDisplayHarga(item) {
     els.sectionDisplay.classList.remove('hidden');
     
-    // Isi Display Besar
     document.getElementById('disp-kode').textContent = `KODE: ${item.Kode_Barang}`;
     document.getElementById('disp-kategori').textContent = item.Kategori_Barang || 'Umum';
     document.getElementById('disp-nama').textContent = item.Nama_Barang;
@@ -173,18 +193,45 @@ function tampilkanDisplayHarga(item) {
     document.getElementById('disp-stok').textContent = item.Stok_Pcs;
     document.getElementById('disp-harga-karton').textContent = item.Harga_Karton ? formatRupiah(item.Harga_Karton) : '-';
 
-    // Button Events
-    document.getElementById('btn-edit-item').onclick = () => isiForm(item);
+    // Event saat tombol "Ubah Data" diklik
+    document.getElementById('btn-edit-item').onclick = () => {
+        isiForm(item);
+        bukaFormModifikasi("Ubah Data Barang");
+    };
+
     document.getElementById('btn-tutup-display').onclick = () => els.sectionDisplay.classList.add('hidden');
 }
 
-// --- FORM INPUT & UPDATE ---
+// ====================================================================
+// 3. FORM INPUT & UPDATE (VISIBILITAS KONTROL)
+// ====================================================================
 
+// Pemicu 1: Saat tombol Ubah Data (dari kartu harga) diklik
+function bukaFormModifikasi(judulForm) {
+    document.getElementById('form-title').textContent = judulForm;
+    els.actionTambahBaru.classList.add('hidden'); // Sembunyikan tombol tambah baru
+    els.sectionForm.classList.remove('hidden');   // Tampilkan form
+    els.tabInput.click(); // Otomatis pindah ke Tab Kelola Data
+}
+
+// Pemicu 2: Saat tombol "Tambah Barang Baru" diklik
+document.getElementById('btn-tambah-baru').addEventListener('click', () => {
+    els.formBarang.reset();
+    els.formBarang.ID_Barang.value = ''; 
+    bukaFormModifikasi("Tambah Data Barang Baru");
+});
+
+// Aksi Tutup Form
+function tutupForm() {
+    els.formBarang.reset();
+    els.sectionForm.classList.add('hidden');
+    els.actionTambahBaru.classList.remove('hidden');
+}
+
+document.getElementById('btn-batal-form').addEventListener('click', tutupForm);
+
+// Mengisi Form
 function isiForm(item) {
-    // Scroll ke form
-    document.getElementById('section-form').scrollIntoView({ behavior: 'smooth' });
-    
-    // Isi data
     els.formBarang.ID_Barang.value = item.ID_Barang;
     els.formBarang.Kode_Barang.value = item.Kode_Barang;
     els.formBarang.Nama_Barang.value = item.Nama_Barang;
@@ -194,17 +241,11 @@ function isiForm(item) {
     els.formBarang.Harga_Karton.value = item.Harga_Karton || 0;
 }
 
-document.getElementById('btn-reset-form').addEventListener('click', () => {
-    els.formBarang.reset();
-    els.formBarang.ID_Barang.value = ''; // Reset ID artinya Tambah Baru
-});
-
 els.formBarang.addEventListener('submit', async (e) => {
     e.preventDefault();
     const btn = document.getElementById('btn-simpan');
     const loading = document.getElementById('loading-simpan');
     
-    // Tentukan aksi: Jika ID ada = Edit, Jika kosong = Tambah
     const isEdit = els.formBarang.ID_Barang.value !== "";
     const action = isEdit ? 'ubahBarang' : 'tambahBarang';
 
@@ -221,10 +262,10 @@ els.formBarang.addEventListener('submit', async (e) => {
         
         if (result.status === 'sukses') {
             tampilkanNotifikasi(result.message, 'sukses');
-            els.formBarang.reset();
-            els.formBarang.ID_Barang.value = '';
-            els.sectionDisplay.classList.add('hidden');
-            await muatDataBarang(); // Refresh data lokal
+            tutupForm(); // Sembunyikan form kembali ke keadaan semula
+            els.sectionDisplay.classList.add('hidden'); // Tutup juga display harga lama
+            els.tabCek.click(); // Otomatis kembali ke layar cek harga
+            await muatDataBarang(); 
         } else {
             tampilkanNotifikasi("Gagal: " + result.message, 'error');
         }
@@ -238,7 +279,7 @@ els.formBarang.addEventListener('submit', async (e) => {
 });
 
 // ====================================================================
-// 3. FITUR SCANNER & UTILITIES
+// 4. FITUR SCANNER & UTILITIES
 // ====================================================================
 
 document.getElementById('btn-scan').addEventListener('click', () => {
@@ -249,10 +290,8 @@ document.getElementById('btn-scan').addEventListener('click', () => {
     const config = { fps: 10, qrbox: { width: 250, height: 250 } };
     
     AppState.scanner.start({ facingMode: "environment" }, config, (decodedText) => {
-        // Sukses Scan
         stopScanner();
         els.inputCari.value = decodedText;
-        // Trigger event input manual untuk menjalankan logika pencarian
         els.inputCari.dispatchEvent(new Event('input'));
         tampilkanNotifikasi("Barcode terdeteksi!", "sukses");
     }, (err) => {
@@ -274,7 +313,7 @@ function stopScanner() {
 
 function tampilkanNotifikasi(msg, type) {
     els.notifikasi.textContent = msg;
-    els.notifikasi.className = type; // class: sukses / error / info
+    els.notifikasi.className = type; 
     els.notifikasi.classList.remove('hidden');
     setTimeout(() => els.notifikasi.classList.add('hidden'), 3000);
 }
