@@ -26,6 +26,10 @@ const els = {
     notifikasi: document.getElementById('notifikasi'),
     scannerContainer: document.getElementById('scanner-container'),
     
+    // Elemen tambahan untuk scanner di form
+    btnScanForm: document.getElementById('btn-scan-form'),
+    kodeBarangInput: document.getElementById('Kode_Barang'),
+
     // Tab Elements
     tabCek: document.getElementById('tab-cek'),
     tabInput: document.getElementById('tab-input'),
@@ -282,7 +286,25 @@ els.formBarang.addEventListener('submit', async (e) => {
 // 4. FITUR SCANNER & UTILITIES
 // ====================================================================
 
+let activeScannerTarget = null;
+let autoSearchOnScan = false;
+
+// Tombol Scan di tab Cek Harga
 document.getElementById('btn-scan').addEventListener('click', () => {
+    mulaiScanner(els.inputCari, true);
+});
+
+// Tombol Scan di form Kelola Data Barang
+if (els.btnScanForm) {
+    els.btnScanForm.addEventListener('click', () => {
+        mulaiScanner(els.kodeBarangInput, false);
+    });
+}
+
+function mulaiScanner(targetInput, autoSearch) {
+    activeScannerTarget = targetInput;
+    autoSearchOnScan = autoSearch;
+    
     els.scannerContainer.classList.remove('hidden');
     if (!AppState.scanner) {
         AppState.scanner = new Html5Qrcode("scanner-viewfinder");
@@ -291,13 +313,21 @@ document.getElementById('btn-scan').addEventListener('click', () => {
     
     AppState.scanner.start({ facingMode: "environment" }, config, (decodedText) => {
         stopScanner();
-        els.inputCari.value = decodedText;
-        els.inputCari.dispatchEvent(new Event('input'));
+        activeScannerTarget.value = decodedText;
+        
+        // Jika scan dari form pencarian, jalankan otomatis pencarian.
+        // Jika scan dari form input, cukup isikan nilainya ke input box.
+        if (autoSearchOnScan) {
+            activeScannerTarget.dispatchEvent(new Event('input'));
+        }
         tampilkanNotifikasi("Barcode terdeteksi!", "sukses");
     }, (err) => {
         // Error scan ignore
-    }).catch(err => alert("Kamera tidak dapat diakses"));
-});
+    }).catch(err => {
+        alert("Kamera tidak dapat diakses");
+        els.scannerContainer.classList.add('hidden');
+    });
+}
 
 document.getElementById('btn-close-scanner').addEventListener('click', stopScanner);
 
