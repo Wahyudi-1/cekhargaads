@@ -9,7 +9,8 @@ const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzhue9eY4KEOD9SCm1Wd
 const AppState = {
     barang: [],     
     user: null,     
-    scanner: null   
+    scannerPopup: null, // Scanner pop-up (untuk form)
+    scannerInline: null // Scanner inline (untuk halaman cek harga)
 };
 
 // --- DOM ELEMENTS ---
@@ -26,6 +27,12 @@ const els = {
     notifikasi: document.getElementById('notifikasi'),
     scannerContainer: document.getElementById('scanner-container'),
     
+    // Elemen tambahan untuk Inline Scanner (Halaman Cek Harga)
+    inlineScannerContainer: document.getElementById('inline-scanner-container'),
+    btnTutupInlineScanner: document.getElementById('btn-tutup-inline-scanner'),
+    btnScan: document.getElementById('btn-scan'),
+    searchBoxContainer: document.getElementById('search-box-container'),
+
     // Elemen tambahan untuk scanner di form
     btnScanForm: document.getElementById('btn-scan-form'),
     kodeBarangInput: document.getElementById('Kode_Barang'),
@@ -423,54 +430,92 @@ function simpanKeAntreanOffline(dataObj) {
 
 let activeScannerTarget = null;
 
-// Tombol Scan di tab Cek Harga
-document.getElementById('btn-scan').addEventListener('click', () => {
-    mulaiScanner(els.inputCari);
+// Tombol Scan di tab Cek Harga (Mode Tampilan Menyatu dengan Halaman)
+els.btnScan.addEventListener('click', () => {
+    mulaiScannerInline(els.inputCari);
 });
 
-// Tombol Scan di form Kelola Data Barang
+// Tombol Scan di form Kelola Data Barang (Mode Pop-up)
 if (els.btnScanForm) {
     els.btnScanForm.addEventListener('click', () => {
-        mulaiScanner(els.kodeBarangInput);
+        mulaiScannerPopup(els.kodeBarangInput);
     });
 }
 
-function mulaiScanner(targetInput) {
+// --- LOGIKA INLINE SCANNER (HALAMAN CEK HARGA) ---
+function mulaiScannerInline(targetInput) {
     activeScannerTarget = targetInput;
     
-    els.scannerContainer.classList.remove('hidden');
-    if (!AppState.scanner) {
-        AppState.scanner = new Html5Qrcode("scanner-viewfinder");
+    // Tampilkan bingkai kamera inline & sembunyikan kotak pencarian teks
+    els.inlineScannerContainer.classList.remove('hidden');
+    els.searchBoxContainer.classList.add('hidden'); 
+    
+    if (!AppState.scannerInline) {
+        AppState.scannerInline = new Html5Qrcode("inline-scanner-viewfinder");
     }
     const config = { fps: 10, qrbox: { width: 250, height: 250 } };
     
-    AppState.scanner.start({ facingMode: "environment" }, config, (decodedText) => {
-        stopScanner();
+    AppState.scannerInline.start({ facingMode: "environment" }, config, (decodedText) => {
+        stopScannerInline();
         activeScannerTarget.value = decodedText;
-        
-        // Selalu panggil Event 'input' otomatis agar autofill/pencarian langsung berjalan
-        activeScannerTarget.dispatchEvent(new Event('input'));
-        
+        activeScannerTarget.dispatchEvent(new Event('input')); // Otomatis trigger cek harga
         tampilkanNotifikasi("Barcode terdeteksi!", "sukses");
-    }, (err) => {
-        // Error scan ignore
-    }).catch(err => {
+    }, undefined).catch(err => {
+        alert("Kamera tidak dapat diakses");
+        stopScannerInline();
+    });
+}
+
+if (els.btnTutupInlineScanner) {
+    els.btnTutupInlineScanner.addEventListener('click', stopScannerInline);
+}
+
+function stopScannerInline() {
+    if (AppState.scannerInline && AppState.scannerInline.isScanning) {
+        AppState.scannerInline.stop().then(() => {
+            // Sembunyikan kamera, tampilkan lagi kotak pencarian
+            els.inlineScannerContainer.classList.add('hidden');
+            els.searchBoxContainer.classList.remove('hidden');
+        });
+    } else {
+        els.inlineScannerContainer.classList.add('hidden');
+        els.searchBoxContainer.classList.remove('hidden');
+    }
+}
+
+// --- LOGIKA POPUP SCANNER (FORM DATA BARANG) ---
+function mulaiScannerPopup(targetInput) {
+    activeScannerTarget = targetInput;
+    
+    els.scannerContainer.classList.remove('hidden');
+    if (!AppState.scannerPopup) {
+        AppState.scannerPopup = new Html5Qrcode("scanner-viewfinder");
+    }
+    const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+    
+    AppState.scannerPopup.start({ facingMode: "environment" }, config, (decodedText) => {
+        stopScannerPopup();
+        activeScannerTarget.value = decodedText;
+        activeScannerTarget.dispatchEvent(new Event('input')); // Otomatis isi data form 
+        tampilkanNotifikasi("Barcode terdeteksi!", "sukses");
+    }, undefined).catch(err => {
         alert("Kamera tidak dapat diakses");
         els.scannerContainer.classList.add('hidden');
     });
 }
 
-document.getElementById('btn-close-scanner').addEventListener('click', stopScanner);
+document.getElementById('btn-close-scanner').addEventListener('click', stopScannerPopup);
 
-function stopScanner() {
-    if (AppState.scanner && AppState.scanner.isScanning) {
-        AppState.scanner.stop().then(() => {
+function stopScannerPopup() {
+    if (AppState.scannerPopup && AppState.scannerPopup.isScanning) {
+        AppState.scannerPopup.stop().then(() => {
             els.scannerContainer.classList.add('hidden');
         });
     } else {
         els.scannerContainer.classList.add('hidden');
     }
 }
+
 
 function tampilkanNotifikasi(msg, type) {
     els.notifikasi.textContent = msg;
