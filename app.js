@@ -453,7 +453,13 @@ function mulaiScannerInline(targetInput) {
     if (!AppState.scannerInline) {
         AppState.scannerInline = new Html5Qrcode("inline-scanner-viewfinder");
     }
-    const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+    
+    // Konfigurasi khusus: Paksa bentuk KOTAK (1.0) agar rapi di layar HP
+    const config = { 
+        fps: 10, 
+        qrbox: { width: 220, height: 220 },
+        aspectRatio: 1.0 
+    };
     
     AppState.scannerInline.start({ facingMode: "environment" }, config, (decodedText) => {
         stopScannerInline();
@@ -491,7 +497,13 @@ function mulaiScannerPopup(targetInput) {
     if (!AppState.scannerPopup) {
         AppState.scannerPopup = new Html5Qrcode("scanner-viewfinder");
     }
-    const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+    
+    // Konfigurasi khusus untuk Pop-up juga disamakan
+    const config = { 
+        fps: 10, 
+        qrbox: { width: 220, height: 220 },
+        aspectRatio: 1.0 
+    };
     
     AppState.scannerPopup.start({ facingMode: "environment" }, config, (decodedText) => {
         stopScannerPopup();
