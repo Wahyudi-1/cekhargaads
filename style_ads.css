@@ -12,7 +12,7 @@
 body { font-family: 'Roboto', sans-serif; background-color: var(--bg); color: #333; }
 .hidden { display: none !important; }
 
-/* === LOGIN STYLE (SAMA SEPERTI SEBELUMNYA) === */
+/* === LOGIN STYLE === */
 #login-container {
     display: flex; justify-content: center; align-items: center;
     min-height: 100vh; background: linear-gradient(135deg, #2c3e50, #4ca1af);
@@ -38,6 +38,44 @@ header {
 .badge-user { font-size: 0.8rem; background: rgba(255,255,255,0.2); padding: 2px 8px; border-radius: 10px; }
 #btn-logout { background: var(--danger); border: none; color: white; padding: 5px 12px; border-radius: 4px; cursor: pointer; }
 
+/* === TAB NAVIGATION (BARU) === */
+.nav-tabs {
+    display: flex;
+    background: var(--primary);
+    padding: 0 20px;
+    gap: 5px;
+}
+.tab-btn {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 8px 8px 0 0;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+.tab-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+.tab-btn.active {
+    background: var(--bg);
+    color: var(--primary);
+    font-weight: 700;
+}
+.tab-content {
+    display: none;
+    animation: fadeIn 0.3s ease;
+}
+.tab-content.active {
+    display: block;
+}
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(5px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
 main { padding: 20px; }
 
 /* SEARCH SECTION */
@@ -58,9 +96,7 @@ main { padding: 20px; }
     background: #e8f5e9; border: 2px solid var(--accent); border-radius: 10px;
     padding: 20px; margin: 20px 0; text-align: center;
     box-shadow: 0 4px 10px rgba(39, 174, 96, 0.1);
-    animation: slideDown 0.3s ease;
 }
-@keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
 
 .card-header { display: flex; justify-content: space-between; font-size: 0.9rem; color: #666; margin-bottom: 10px; }
 .badge-kategori { background: var(--primary); color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; }
@@ -72,7 +108,7 @@ main { padding: 20px; }
 #btn-tutup-display { background: #95a5a6; color: white; }
 
 /* FORM SECTION */
-#section-form { border-top: 2px dashed #ddd; margin-top: 30px; padding-top: 20px; }
+#section-form { padding-top: 10px; }
 .section-title { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
 .btn-small { font-size: 0.8rem; padding: 5px 10px; background: #3498db; color: white; border: none; border-radius: 4px; cursor: pointer; }
 
@@ -106,4 +142,6 @@ main { padding: 20px; }
 @media (max-width: 600px) {
     .form-row { flex-direction: column; gap: 10px; }
     .price-large { font-size: 2.5rem; }
+    .nav-tabs { padding: 0 10px; }
+    .tab-btn { flex: 1; text-align: center; font-size: 0.9rem; padding: 10px; }
 }
