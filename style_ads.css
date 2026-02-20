@@ -138,7 +138,7 @@ main { padding: 20px; }
     background: rgba(0,0,0,0.85); z-index: 2000;
     display: flex; flex-direction: column; justify-content: center; align-items: center;
 }
-#scanner-viewfinder { width: 300px; height: 300px; background: black; border: 2px solid white; }
+#scanner-viewfinder { width: 100%; max-width: 320px; background: black; border: 2px solid white; border-radius: 8px; overflow: hidden; }
 #btn-close-scanner { margin-top: 20px; padding: 10px 30px; background: var(--danger); color: white; border: none; font-size: 1.2rem; border-radius: 30px; cursor: pointer; }
 
 @media (max-width: 600px) {
