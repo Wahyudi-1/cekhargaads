@@ -64,16 +64,23 @@
                 <!-- Tampil jika barang ditemukan -->
                 <section id="section-display" class="hidden">
                     <div class="price-card">
-                        <div class="card-header">
-                            <span id="disp-kode">KODE: -</span>
-                            <span id="disp-kategori" class="badge-kategori">-</span>
-                        </div>
                         <h2 id="disp-nama">Nama Barang</h2>
-                        <div class="price-large" id="disp-harga">Rp 0</div>
-                        <div class="stock-info">
-                            Stok: <strong id="disp-stok">0</strong> | 
-                            Harga Karton: <span id="disp-harga-karton">-</span>
+                        
+                        <div class="price-list">
+                            <div class="price-tier">
+                                <span>Harga Satuan:</span>
+                                <span class="price-val" id="disp-harga-satuan">Rp 0</span>
+                            </div>
+                            <div class="price-tier">
+                                <span>Harga Pak/Lusin:</span>
+                                <span class="price-val" id="disp-harga-lusin">Rp 0</span>
+                            </div>
+                            <div class="price-tier">
+                                <span>Harga Karton:</span>
+                                <span class="price-val" id="disp-harga-karton">Rp 0</span>
+                            </div>
                         </div>
+
                         <div class="action-buttons">
                             <button id="btn-edit-item">✏️ Ubah Data / Harga</button>
                             <button id="btn-tutup-display">Tutup</button>
@@ -132,11 +139,15 @@
 
                         <div class="form-row bg-highlight">
                             <div class="form-group">
-                                <label>Harga Jual Satuan (Pcs)</label>
+                                <label>Harga Satuan</label>
                                 <input type="number" id="Harga_Pcs" name="Harga_Pcs" value="0" required>
                             </div>
                             <div class="form-group">
-                                <label>Harga Karton/Sak (Opsional)</label>
+                                <label>Harga Pak/Lusin</label>
+                                <input type="number" id="Harga_Lusin" name="Harga_Lusin" value="0">
+                            </div>
+                            <div class="form-group">
+                                <label>Harga Karton</label>
                                 <input type="number" id="Harga_Karton" name="Harga_Karton" value="0">
                             </div>
                         </div>
