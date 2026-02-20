@@ -9,11 +9,10 @@
 </head>
 <body>
 
-    <!-- === 1. HALAMAN LOGIN (TETAP ADA) === -->
+    <!-- === 1. HALAMAN LOGIN === -->
     <div id="login-container">
         <form id="form-login">
             <div style="text-align: center; margin-bottom: 20px;">
-                <!-- Placeholder Logo jika ada -->
                 <h2 style="color: #2c3e50;">Toko ADS</h2>
                 <p>Login Manager & Cek Harga</p>
             </div>
@@ -36,92 +35,116 @@
     <div id="app-container" class="hidden">
         <header>
             <div class="header-left">
-                <h1>Cek Harga Barang</h1>
+                <h1>Sistem Cek Harga</h1>
                 <span id="info-nama-user" class="badge-user">User</span>
             </div>
             <button id="btn-logout">Keluar</button>
         </header>
 
+        <!-- NAVIGASI TAB -->
+        <div class="nav-tabs">
+            <button id="tab-cek" class="tab-btn active">Cek Harga</button>
+            <button id="tab-input" class="tab-btn">Kelola Data Barang</button>
+        </div>
+
         <main>
-            <!-- BAGIAN SCAN & CARI -->
-            <section id="section-cari">
-                <div class="search-box">
-                    <input type="text" id="input-cari" placeholder="Scan Barcode atau Ketik Nama Barang..." autocomplete="off">
-                    <button id="btn-scan" class="btn-icon">📷 Scan</button>
-                </div>
-                <!-- Hasil Rekomendasi (Dropdown) -->
-                <div id="hasil-pencarian" class="rekomendasi-container hidden"></div>
-            </section>
+            <!-- ========================================== -->
+            <!-- TAB 1: PENCARIAN & DISPLAY HARGA           -->
+            <!-- ========================================== -->
+            <div id="view-cek" class="tab-content active">
+                <section id="section-cari">
+                    <div class="search-box">
+                        <input type="text" id="input-cari" placeholder="Scan Barcode atau Ketik Nama Barang..." autocomplete="off">
+                        <button id="btn-scan" class="btn-icon">📷 Scan</button>
+                    </div>
+                    <!-- Hasil Rekomendasi (Dropdown) -->
+                    <div id="hasil-pencarian" class="rekomendasi-container hidden"></div>
+                </section>
 
-            <!-- BAGIAN DISPLAY HARGA (Tampil jika barang ditemukan) -->
-            <section id="section-display" class="hidden">
-                <div class="price-card">
-                    <div class="card-header">
-                        <span id="disp-kode">KODE: -</span>
-                        <span id="disp-kategori" class="badge-kategori">-</span>
+                <!-- Tampil jika barang ditemukan -->
+                <section id="section-display" class="hidden">
+                    <div class="price-card">
+                        <div class="card-header">
+                            <span id="disp-kode">KODE: -</span>
+                            <span id="disp-kategori" class="badge-kategori">-</span>
+                        </div>
+                        <h2 id="disp-nama">Nama Barang</h2>
+                        <div class="price-large" id="disp-harga">Rp 0</div>
+                        <div class="stock-info">
+                            Stok: <strong id="disp-stok">0</strong> | 
+                            Harga Karton: <span id="disp-harga-karton">-</span>
+                        </div>
+                        <div class="action-buttons">
+                            <button id="btn-edit-item">✏️ Ubah Data / Harga</button>
+                            <button id="btn-tutup-display">Tutup</button>
+                        </div>
                     </div>
-                    <h2 id="disp-nama">Nama Barang</h2>
-                    <div class="price-large" id="disp-harga">Rp 0</div>
-                    <div class="stock-info">
-                        Stok: <strong id="disp-stok">0</strong> | 
-                        Harga Karton: <span id="disp-harga-karton">-</span>
-                    </div>
-                    <div class="action-buttons">
-                        <button id="btn-edit-item">✏️ Ubah Data / Harga</button>
-                        <button id="btn-tutup-display">Tutup</button>
-                    </div>
-                </div>
-            </section>
+                </section>
+            </div>
 
-            <!-- BAGIAN FORM INPUT (Untuk Tambah Baru / Edit) -->
-            <section id="section-form">
-                <div class="section-title">
-                    <h3>Form Data Barang</h3>
-                    <button id="btn-reset-form" class="btn-small">Bersihkan Form (Input Baru)</button>
-                </div>
+            <!-- ========================================== -->
+            <!-- TAB 2: FORM INPUT & MODIFIKASI             -->
+            <!-- ========================================== -->
+            <div id="view-input" class="tab-content">
                 
-                <form id="form-barang">
-                    <input type="hidden" id="ID_Barang" name="ID_Barang">
+                <!-- Tombol ini muncul ketika Form disembunyikan -->
+                <div id="action-tambah-baru" style="text-align: center; margin: 30px 0;">
+                    <button id="btn-tambah-baru" style="padding: 15px 30px; background: #3498db; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 1.1rem; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                        + Tambah Barang Baru
+                    </button>
+                    <p style="margin-top: 10px; color: #7f8c8d; font-size: 0.9rem;">(Atau cari barang di tab "Cek Harga" lalu klik Ubah)</p>
+                </div>
+
+                <!-- Form disembunyikan secara default menggunakan class "hidden" -->
+                <section id="section-form" class="hidden">
+                    <div class="section-title">
+                        <h3 id="form-title">Form Data Barang</h3>
+                        <button id="btn-batal-form" class="btn-small" style="background: #e74c3c;">Batal / Tutup</button>
+                    </div>
                     
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Kode Barang (Barcode)</label>
-                            <input type="text" id="Kode_Barang" name="Kode_Barang" required placeholder="Scan atau ketik kode unik">
+                    <form id="form-barang">
+                        <input type="hidden" id="ID_Barang" name="ID_Barang">
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Kode Barang (Barcode)</label>
+                                <input type="text" id="Kode_Barang" name="Kode_Barang" required placeholder="Scan atau ketik kode unik">
+                            </div>
+                            <div class="form-group">
+                                <label>Nama Barang</label>
+                                <input type="text" id="Nama_Barang" name="Nama_Barang" required placeholder="Nama produk lengkap">
+                            </div>
                         </div>
-                        <div class="form-group">
-                            <label>Nama Barang</label>
-                            <input type="text" id="Nama_Barang" name="Nama_Barang" required placeholder="Nama produk lengkap">
-                        </div>
-                    </div>
 
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Kategori</label>
-                            <input type="text" id="Kategori_Barang" name="Kategori_Barang" placeholder="Contoh: Makanan, Sabun">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Kategori</label>
+                                <input type="text" id="Kategori_Barang" name="Kategori_Barang" placeholder="Contoh: Makanan, Sabun">
+                            </div>
+                            <div class="form-group">
+                                <label>Stok (Pcs/Kg)</label>
+                                <input type="number" id="Stok_Pcs" name="Stok_Pcs" value="0" required>
+                            </div>
                         </div>
-                        <div class="form-group">
-                            <label>Stok (Pcs/Kg)</label>
-                            <input type="number" id="Stok_Pcs" name="Stok_Pcs" value="0" required>
-                        </div>
-                    </div>
 
-                    <div class="form-row bg-highlight">
-                        <div class="form-group">
-                            <label>Harga Jual Satuan (Pcs)</label>
-                            <input type="number" id="Harga_Pcs" name="Harga_Pcs" value="0" required>
+                        <div class="form-row bg-highlight">
+                            <div class="form-group">
+                                <label>Harga Jual Satuan (Pcs)</label>
+                                <input type="number" id="Harga_Pcs" name="Harga_Pcs" value="0" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Harga Karton/Sak (Opsional)</label>
+                                <input type="number" id="Harga_Karton" name="Harga_Karton" value="0">
+                            </div>
                         </div>
-                        <div class="form-group">
-                            <label>Harga Karton/Sak (Opsional)</label>
-                            <input type="number" id="Harga_Karton" name="Harga_Karton" value="0">
-                        </div>
-                    </div>
 
-                    <div class="form-actions">
-                        <button type="submit" id="btn-simpan">Simpan Data</button>
-                        <div id="loading-simpan" class="hidden">Menyimpan...</div>
-                    </div>
-                </form>
-            </section>
+                        <div class="form-actions">
+                            <button type="submit" id="btn-simpan">Simpan Data</button>
+                            <div id="loading-simpan" class="hidden" style="text-align:center; padding: 10px; color:#27ae60; font-weight:bold;">Menyimpan data ke server...</div>
+                        </div>
+                    </form>
+                </section>
+            </div>
         </main>
 
         <!-- Overlay Scanner -->
